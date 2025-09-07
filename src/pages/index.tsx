@@ -182,7 +182,22 @@ const Index = () => {
         });
       }
 
-      changeByItem(y, 'Year', filterYearRuns);
+      if (y === 'Total') {
+        // For "Total", show all activities without year filtering
+        setCurrentFilter({ item: 'Total', func: () => true });
+      } else {
+        // For specific years, use year filtering
+        changeByItem(y, 'Year', filterYearRuns);
+      }
+      
+      setRunIndex(-1);
+      setTitle(`${y === 'Total' ? 'All Years' : y} Running Heatmap`);
+      // Reset single run state when changing filters
+      setSingleRunId(null);
+      if (window.location.hash) {
+        window.history.pushState(null, '', window.location.pathname);
+      }
+      
       // Stop current animation
       setIsAnimating(false);
     },
@@ -398,17 +413,13 @@ const Index = () => {
           thisYear={year}
           animationTrigger={animationTrigger}
         />
-        {year === 'Total' ? (
-          <SVGStat />
-        ) : (
-          <RunTable
-            runs={runs}
-            locateActivity={locateActivity}
-            setActivity={setActivity}
-            runIndex={runIndex}
-            setRunIndex={setRunIndex}
-          />
-        )}
+        <RunTable
+          runs={runs}
+          locateActivity={locateActivity}
+          setActivity={setActivity}
+          runIndex={runIndex}
+          setRunIndex={setRunIndex}
+        />
       </div>
       {/* Enable Audiences in Vercel Analytics: https://vercel.com/docs/concepts/analytics/audiences/quickstart */}
       {import.meta.env.VERCEL && <Analytics />}
