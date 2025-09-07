@@ -440,24 +440,24 @@ if __name__ == "__main__":
         print("Using GARMIN_SECRET_STRING from environment variable")
         auth_domain = "CN" if options.is_cn else "COM"
 
-        # Try to load and refresh the token if needed
+        # Load secret string and auto-refresh if needed (like original implementation)
         try:
-            import base64
-            import json
-
-            # Decode the secret string
-            decoded = base64.b64decode(secret_string)
-            token_data = json.loads(decoded)
-
-            # Check if token needs refresh (simplified check)
             garth.client.loads(secret_string)
 
-            print("Token loaded successfully")
+            # Auto-refresh token if expired (key feature from original!)
+            if garth.client.oauth2_token.expired:
+                print("Token expired, refreshing automatically...")
+                garth.client.refresh_oauth2()
+                print("Token refreshed successfully!")
+                # Get the updated secret string after refresh
+                secret_string = garth.client.dumps()
+            else:
+                print("Token is valid, no refresh needed")
 
         except Exception as e:
-            print(f"Token refresh failed: {e}")
-            print("Token may be expired, manual regeneration required")
-            # Could implement automatic refresh here in the future
+            print(f"Token authentication failed: {e}")
+            print("Manual secret regeneration may be required")
+            sys.exit(1)
     else:
         # Fallback to config.yaml login method (for local development)
         print("GARMIN_SECRET_STRING not found, using config.yaml for login")
