@@ -5,7 +5,6 @@ import Layout from '@/components/Layout';
 import LocationStat from '@/components/LocationStat';
 import RunMap from '@/components/RunMap';
 import RunTable from '@/components/RunTable';
-import SVGStat from '@/components/SVGStat';
 import YearsStat from '@/components/YearsStat';
 import useActivities from '@/hooks/useActivities';
 import useSiteMetadata from '@/hooks/useSiteMetadata';
@@ -189,7 +188,7 @@ const Index = () => {
         // For specific years, use year filtering
         changeByItem(y, 'Year', filterYearRuns);
       }
-      
+
       setRunIndex(-1);
       setTitle(`${y === 'Total' ? 'All Years' : y} Running Heatmap`);
       // Reset single run state when changing filters
@@ -197,7 +196,7 @@ const Index = () => {
       if (window.location.hash) {
         window.history.pushState(null, '', window.location.pathname);
       }
-      
+
       // Stop current animation
       setIsAnimating(false);
     },
