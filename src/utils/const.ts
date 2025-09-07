@@ -1,6 +1,6 @@
 // Constants
-const MAPBOX_TOKEN = 
-  import.meta.env.VITE_MAPBOX_TOKEN || 
+const MAPBOX_TOKEN =
+  import.meta.env.VITE_MAPBOX_TOKEN ||
   // Fallback public token - replace with your own for better security
   'pk.eyJ1IjoieWlob25nMDYxOCIsImEiOiJjbWYxdXR4YncwMTJtMm5zOTE4eTZpMGdtIn0.OnsXdwkZFztR8a5Ph_T-xg';
 const MUNICIPALITY_CITIES_ARR = [
