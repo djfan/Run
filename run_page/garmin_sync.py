@@ -432,27 +432,40 @@ if __name__ == "__main__":
     )
     options = parser.parse_args()
     
-    # Load credentials from config.yaml
-    import yaml
-    with open("config.yaml") as f:
-        config = yaml.safe_load(f)
-
-    email = config.get("sync", {}).get("garmin", {}).get("email")
-    password = config.get("sync", {}).get("garmin", {}).get("password")
+    # Check if GARMIN_SECRET_STRING environment variable exists (for GitHub Actions)
+    secret_string = os.getenv("GARMIN_SECRET_STRING")
     
-    # Decide auth_domain from config first, then fallback to command line
-    is_cn_config = config.get("sync", {}).get("garmin", {}).get("is_cn", False)
-    auth_domain = "CN" if options.is_cn or is_cn_config else "COM"
+    if secret_string:
+        # Use pre-generated secret string from environment variable
+        print("Using GARMIN_SECRET_STRING from environment variable")
+        auth_domain = "CN" if options.is_cn else "COM"
+    else:
+        # Fallback to config.yaml login method (for local development)
+        print("GARMIN_SECRET_STRING not found, using config.yaml for login")
+        import yaml
+        try:
+            with open("config.yaml") as f:
+                config = yaml.safe_load(f)
+        except FileNotFoundError:
+            print("Neither GARMIN_SECRET_STRING environment variable nor config.yaml found")
+            sys.exit(1)
 
-    if not email or not password:
-        print("Email or password not found in config.yaml")
-        sys.exit(1)
+        email = config.get("sync", {}).get("garmin", {}).get("email")
+        password = config.get("sync", {}).get("garmin", {}).get("password")
+        
+        # Decide auth_domain from config first, then fallback to command line
+        is_cn_config = config.get("sync", {}).get("garmin", {}).get("is_cn", False)
+        auth_domain = "CN" if options.is_cn or is_cn_config else "COM"
 
-    # Login and get secret_string
-    if auth_domain == "CN":
-        garth.configure(domain="garmin.cn", ssl_verify=False)
-    garth.login(email, password)
-    secret_string = garth.client.dumps()
+        if not email or not password:
+            print("Email or password not found in config.yaml")
+            sys.exit(1)
+
+        # Login and get secret_string
+        if auth_domain == "CN":
+            garth.configure(domain="garmin.cn", ssl_verify=False)
+        garth.login(email, password)
+        secret_string = garth.client.dumps()
 
     file_type = options.download_file_type
     is_only_running = options.only_run    
