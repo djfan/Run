@@ -1,20 +1,20 @@
-import argparse
-
+import yaml
 import garth
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("email", nargs="?", help="email of garmin")
-    parser.add_argument("password", nargs="?", help="password of garmin")
-    parser.add_argument(
-        "--is-cn",
-        dest="is_cn",
-        action="store_true",
-        help="if garmin account is cn",
-    )
-    options = parser.parse_args()
-    if options.is_cn:
+    with open("config.yaml") as f:
+        config = yaml.safe_load(f)
+
+    email = config.get("sync", {}).get("garmin", {}).get("email")
+    password = config.get("sync", {}).get("garmin", {}).get("password")
+    is_cn = config.get("sync", {}).get("garmin", {}).get("is_cn", False)
+
+    if not email or not password:
+        raise Exception("Email or password not found in config.yaml")
+
+    if is_cn:
         garth.configure(domain="garmin.cn", ssl_verify=False)
-    garth.login(options.email, options.password)
+
+    garth.login(email, password)
     secret_string = garth.client.dumps()
     print(secret_string)

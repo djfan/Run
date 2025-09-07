@@ -128,11 +128,17 @@ class Generator:
 
         self.session.commit()
 
-    def load(self):
+    def load(self, start_date=None, end_date=None):
         # if sub_type is not in the db, just add an empty string to it
         query = self.session.query(Activity).filter(Activity.distance > 0.1)
         if self.only_run:
             query = query.filter(Activity.type == "Run")
+        
+        # Add date filtering if provided
+        if start_date:
+            query = query.filter(Activity.start_date_local >= start_date.strftime("%Y-%m-%d %H:%M:%S"))
+        if end_date:
+            query = query.filter(Activity.start_date_local <= end_date.strftime("%Y-%m-%d %H:%M:%S"))
 
         activities = query.order_by(Activity.start_date_local)
         activity_list = []

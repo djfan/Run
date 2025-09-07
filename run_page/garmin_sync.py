@@ -391,9 +391,6 @@ async def download_new_activities(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "secret_string", nargs="?", help="secret_string fro get_garmin_secret.py"
-    )
-    parser.add_argument(
         "--is-cn",
         dest="is_cn",
         action="store_true",
@@ -421,14 +418,44 @@ if __name__ == "__main__":
         default="gpx",
         help="to download personal documents or ebook",
     )
+    parser.add_argument(
+        "--start-date",
+        dest="start_date",
+        type=str,
+        help="Start date for JSON export filtering (YYYY-MM-DD format)",
+    )
+    parser.add_argument(
+        "--end-date",
+        dest="end_date", 
+        type=str,
+        help="End date for JSON export filtering (YYYY-MM-DD format)",
+    )
     options = parser.parse_args()
-    secret_string = options.secret_string
-    auth_domain = "CN" if options.is_cn else "COM"  # Default to COM if not specified
-    file_type = options.download_file_type
-    is_only_running = options.only_run
-    if secret_string is None:
-        print("Missing argument nor valid configuration file")
+    
+    # Load credentials from config.yaml
+    import yaml
+    with open("config.yaml") as f:
+        config = yaml.safe_load(f)
+
+    email = config.get("sync", {}).get("garmin", {}).get("email")
+    password = config.get("sync", {}).get("garmin", {}).get("password")
+    
+    # Decide auth_domain from config first, then fallback to command line
+    is_cn_config = config.get("sync", {}).get("garmin", {}).get("is_cn", False)
+    auth_domain = "CN" if options.is_cn or is_cn_config else "COM"
+
+    if not email or not password:
+        print("Email or password not found in config.yaml")
         sys.exit(1)
+
+    # Login and get secret_string
+    if auth_domain == "CN":
+        garth.configure(domain="garmin.cn", ssl_verify=False)
+    garth.login(email, password)
+    secret_string = garth.client.dumps()
+
+    file_type = options.download_file_type
+    is_only_running = options.only_run    
     folder = FOLDER_DICT.get(file_type, "gpx")
     # make gpx or tcx dir
     if not os.path.exists(folder):
@@ -456,6 +483,24 @@ if __name__ == "__main__":
     )
     loop.run_until_complete(future)
     new_ids, id2title = future.result()
+    
+    # Parse date filters if provided
+    start_date_obj = None
+    end_date_obj = None
+    if options.start_date:
+        try:
+            start_date_obj = dt.datetime.strptime(options.start_date, "%Y-%m-%d")
+        except ValueError:
+            print(f"Invalid start date format: {options.start_date}. Use YYYY-MM-DD format.")
+            sys.exit(1)
+    if options.end_date:
+        try:
+            end_date_obj = dt.datetime.strptime(options.end_date, "%Y-%m-%d")
+            # Set to end of day
+            end_date_obj = end_date_obj.replace(hour=23, minute=59, second=59)
+        except ValueError:
+            print(f"Invalid end date format: {options.end_date}. Use YYYY-MM-DD format.")
+            sys.exit(1)
     # fit may contain gpx(maybe upload by user)
     if file_type == "fit":
         make_activities_file(
@@ -464,7 +509,15 @@ if __name__ == "__main__":
             JSON_FILE,
             file_suffix="gpx",
             activity_title_dict=id2title,
+            start_date=start_date_obj,
+            end_date=end_date_obj,
         )
     make_activities_file(
-        SQL_FILE, folder, JSON_FILE, file_suffix=file_type, activity_title_dict=id2title
+        SQL_FILE, 
+        folder, 
+        JSON_FILE, 
+        file_suffix=file_type, 
+        activity_title_dict=id2title,
+        start_date=start_date_obj,
+        end_date=end_date_obj,
     )
