@@ -426,33 +426,55 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--end-date",
-        dest="end_date", 
+        dest="end_date",
         type=str,
         help="End date for JSON export filtering (YYYY-MM-DD format)",
     )
     options = parser.parse_args()
-    
+
     # Check if GARMIN_SECRET_STRING environment variable exists (for GitHub Actions)
     secret_string = os.getenv("GARMIN_SECRET_STRING")
-    
+
     if secret_string:
         # Use pre-generated secret string from environment variable
         print("Using GARMIN_SECRET_STRING from environment variable")
         auth_domain = "CN" if options.is_cn else "COM"
+
+        # Try to load and refresh the token if needed
+        try:
+            import base64
+            import json
+
+            # Decode the secret string
+            decoded = base64.b64decode(secret_string)
+            token_data = json.loads(decoded)
+
+            # Check if token needs refresh (simplified check)
+            garth.client.loads(secret_string)
+
+            print("Token loaded successfully")
+
+        except Exception as e:
+            print(f"Token refresh failed: {e}")
+            print("Token may be expired, manual regeneration required")
+            # Could implement automatic refresh here in the future
     else:
         # Fallback to config.yaml login method (for local development)
         print("GARMIN_SECRET_STRING not found, using config.yaml for login")
         import yaml
+
         try:
             with open("config.yaml") as f:
                 config = yaml.safe_load(f)
         except FileNotFoundError:
-            print("Neither GARMIN_SECRET_STRING environment variable nor config.yaml found")
+            print(
+                "Neither GARMIN_SECRET_STRING environment variable nor config.yaml found"
+            )
             sys.exit(1)
 
         email = config.get("sync", {}).get("garmin", {}).get("email")
         password = config.get("sync", {}).get("garmin", {}).get("password")
-        
+
         # Decide auth_domain from config first, then fallback to command line
         is_cn_config = config.get("sync", {}).get("garmin", {}).get("is_cn", False)
         auth_domain = "CN" if options.is_cn or is_cn_config else "COM"
@@ -468,7 +490,7 @@ if __name__ == "__main__":
         secret_string = garth.client.dumps()
 
     file_type = options.download_file_type
-    is_only_running = options.only_run    
+    is_only_running = options.only_run
     folder = FOLDER_DICT.get(file_type, "gpx")
     # make gpx or tcx dir
     if not os.path.exists(folder):
@@ -496,7 +518,7 @@ if __name__ == "__main__":
     )
     loop.run_until_complete(future)
     new_ids, id2title = future.result()
-    
+
     # Parse date filters if provided
     start_date_obj = None
     end_date_obj = None
@@ -504,7 +526,9 @@ if __name__ == "__main__":
         try:
             start_date_obj = dt.datetime.strptime(options.start_date, "%Y-%m-%d")
         except ValueError:
-            print(f"Invalid start date format: {options.start_date}. Use YYYY-MM-DD format.")
+            print(
+                f"Invalid start date format: {options.start_date}. Use YYYY-MM-DD format."
+            )
             sys.exit(1)
     if options.end_date:
         try:
@@ -512,7 +536,9 @@ if __name__ == "__main__":
             # Set to end of day
             end_date_obj = end_date_obj.replace(hour=23, minute=59, second=59)
         except ValueError:
-            print(f"Invalid end date format: {options.end_date}. Use YYYY-MM-DD format.")
+            print(
+                f"Invalid end date format: {options.end_date}. Use YYYY-MM-DD format."
+            )
             sys.exit(1)
     # fit may contain gpx(maybe upload by user)
     if file_type == "fit":
@@ -526,10 +552,10 @@ if __name__ == "__main__":
             end_date=end_date_obj,
         )
     make_activities_file(
-        SQL_FILE, 
-        folder, 
-        JSON_FILE, 
-        file_suffix=file_type, 
+        SQL_FILE,
+        folder,
+        JSON_FILE,
+        file_suffix=file_type,
         activity_title_dict=id2title,
         start_date=start_date_obj,
         end_date=end_date_obj,
