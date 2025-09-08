@@ -140,11 +140,35 @@ def parse_datetime_to_local(start_time, end_time, point):
 
 
 def get_normalized_sport_type(sport_type):
-    if sport_type == "Run":
-        return "running"
-    elif sport_type == "Walk":
-        return "walking"
-    elif sport_type == "Ride":
-        return "cycling"
+    """
+    Map GPX sport types to standardized categories for consistent filtering
+    """
+    # Running activities
+    if sport_type in ["running", "Run"]:
+        return "Run"
+
+    # Cycling activities
+    elif sport_type in ["cycling", "Ride", "road_biking"]:
+        return "Ride"
+
+    # Swimming activities
+    elif sport_type in [
+        "lap_swimming",
+        "open_water_swimming",
+        "Swim",
+        "Swimming",
+        "Pool Swimming",
+    ]:
+        return "Swim"
+
+    # Walking activities
+    elif sport_type in ["walking", "Walk"]:
+        return "Walk"
+
+    # Hiking activities
+    elif sport_type in ["hiking", "Hike"]:
+        return "Hike"
+
+    # Unknown or unrecognized activities
     else:
-        return sport_type
+        return "Unknown"
