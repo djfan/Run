@@ -1,10 +1,10 @@
 import Layout from '@/components/Layout';
-import ActivityList from '@/components/ActivityList';
+import SVGStat from '@/components/SVGStat';
 import { Helmet } from 'react-helmet-async';
 import { useTheme } from '@/hooks/useTheme';
 import { useEffect } from 'react';
 
-const HomePage = () => {
+const SVGStatsPage = () => {
   // Use the theme hook to get the current theme
   const { theme } = useTheme();
 
@@ -20,17 +20,17 @@ const HomePage = () => {
       <Helmet>
         {/* Set HTML attributes including theme */}
         <html lang="en" data-theme={theme} />
-        <title>Summary</title>
-        <meta name="description" content="Running activity summary" />
+        <title>Statistics</title>
+        <meta name="description" content="Running statistics visualizations" />
       </Helmet>
       <div className="w-full">
         <h1 className="my-12 mt-6 text-5xl font-extrabold italic text-center">
-          Summary
+          Statistics
         </h1>
-        <ActivityList />
+        <SVGStat />
       </div>
     </Layout>
   );
 };
 
-export default HomePage;
+export default SVGStatsPage;

@@ -19,10 +19,21 @@ const SVGStat = () => {
   }, []);
 
   return (
-    <div id="svgStat">
+    <div id="svgStat" className="space-y-8">
       <Suspense fallback={<div className="text-center">Loading...</div>}>
-        <GithubSvg className="github-svg mt-4 h-auto w-full" />
-        <GridSvg className="grid-svg mt-4 h-auto w-full" />
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-6">Activity Calendar</h2>
+          <div className="flex justify-center">
+            <GithubSvg className="github-svg max-w-4xl w-full h-auto" />
+          </div>
+        </div>
+        
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold mb-6">Activity Grid</h2>
+          <div className="flex justify-center">
+            <GridSvg className="grid-svg max-w-3xl w-full h-auto" />
+          </div>
+        </div>
       </Suspense>
     </div>
   );
