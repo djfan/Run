@@ -149,11 +149,23 @@ class Generator:
 
         streak = 0
         last_date = None
-        for activity in activities:
+        try:
+            activities_iter = iter(activities)
+        except Exception as e:
+            print(f"Error iterating activities: {e}")
+            return []
+        
+        for activity in activities_iter:
             # Determine running streak.
-            date = datetime.datetime.strptime(
-                activity.start_date_local, "%Y-%m-%d %H:%M:%S"  # type: ignore
-            ).date()
+            try:
+                if not activity.start_date_local:
+                    continue
+                date = datetime.datetime.strptime(
+                    activity.start_date_local, "%Y-%m-%d %H:%M:%S"  # type: ignore
+                ).date()
+            except (ValueError, TypeError) as e:
+                print(f"Error parsing date {activity.start_date_local}: {e}")
+                continue
             if last_date is None:
                 streak = 1
             elif date == last_date:
