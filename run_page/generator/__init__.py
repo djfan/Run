@@ -144,42 +144,40 @@ class Generator:
                 Activity.start_date_local <= end_date.strftime("%Y-%m-%d %H:%M:%S")
             )
 
-        activities = query.order_by(Activity.start_date_local)
-        activity_list = []
-
-        streak = 0
-        last_date = None
         try:
-            activities_iter = iter(activities)
-        except Exception as e:
-            print(f"Error iterating activities: {e}")
-            return []
-        
-        for activity in activities_iter:
-            # Determine running streak.
-            try:
-                if not activity.start_date_local:
+            activities = query.order_by(Activity.start_date_local)
+            activity_list = []
+
+            streak = 0
+            last_date = None
+            for activity in activities:
+                # Determine running streak.
+                try:
+                    if not activity.start_date_local:
+                        continue
+                    date = datetime.datetime.strptime(
+                        activity.start_date_local, "%Y-%m-%d %H:%M:%S"  # type: ignore
+                    ).date()
+                except (ValueError, TypeError) as e:
+                    print(f"Error parsing date {activity.start_date_local}: {e}")
                     continue
-                date = datetime.datetime.strptime(
-                    activity.start_date_local, "%Y-%m-%d %H:%M:%S"  # type: ignore
-                ).date()
-            except (ValueError, TypeError) as e:
-                print(f"Error parsing date {activity.start_date_local}: {e}")
-                continue
-            if last_date is None:
-                streak = 1
-            elif date == last_date:
-                pass
-            elif date == last_date + datetime.timedelta(days=1):
-                streak += 1
-            else:
-                assert date > last_date
-                streak = 1
-            activity.streak = streak  # type: ignore
-            last_date = date
-            if not IGNORE_BEFORE_SAVING:
-                activity.summary_polyline = filter_out(activity.summary_polyline)  # type: ignore
-            activity_list.append(activity.to_dict())
+                if last_date is None:
+                    streak = 1
+                elif date == last_date:
+                    pass
+                elif date == last_date + datetime.timedelta(days=1):
+                    streak += 1
+                else:
+                    assert date > last_date
+                    streak = 1
+                activity.streak = streak  # type: ignore
+                last_date = date
+                if not IGNORE_BEFORE_SAVING:
+                    activity.summary_polyline = filter_out(activity.summary_polyline)  # type: ignore
+                activity_list.append(activity.to_dict())
+        except Exception as e:
+            print(f"Error loading activities: {e}")
+            return []
 
         return activity_list
 
