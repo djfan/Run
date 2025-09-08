@@ -106,10 +106,14 @@ class TrackLoader:
         else:
             activities = session.query(Activity).order_by(Activity.start_date_local)
         tracks = []
-        for activity in activities:
-            t = Track()
-            t.load_from_db(activity)
-            tracks.append(t)
+        try:
+            for activity in activities:
+                t = Track()
+                t.load_from_db(activity)
+                tracks.append(t)
+        except Exception as e:
+            print(f"Error loading tracks from database: {e}")
+            return []
         print(f"All tracks: {len(tracks)}")
         tracks = self._filter_tracks(tracks)
         print(f"After filter tracks: {len(tracks)}")
