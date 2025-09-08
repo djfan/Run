@@ -24,7 +24,7 @@ const HomePage = () => {
         <meta name="description" content="Running activity summary" />
       </Helmet>
       <div className="w-full">
-        <h1 className="my-12 mt-6 text-5xl font-extrabold italic text-center">
+        <h1 className="my-12 mt-6 text-center text-5xl font-extrabold italic">
           Summary
         </h1>
         <ActivityList />

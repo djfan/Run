@@ -24,7 +24,7 @@ const SVGStatsPage = () => {
         <meta name="description" content="Running statistics visualizations" />
       </Helmet>
       <div className="w-full">
-        <h1 className="my-12 mt-6 text-5xl font-extrabold italic text-center">
+        <h1 className="my-12 mt-6 text-center text-5xl font-extrabold italic">
           Statistics
         </h1>
         <SVGStat />
