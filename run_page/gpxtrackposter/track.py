@@ -129,7 +129,7 @@ class Track:
             activity.start_date_local, "%Y-%m-%d %H:%M:%S"
         )
         self.start_time_local = start_time
-        self.end_time = start_time + activity.elapsed_time
+        self.end_time = start_time + datetime.timedelta(seconds=activity.elapsed_time)
         self.length = float(activity.distance)
         if IGNORE_BEFORE_SAVING:
             summary_polyline = filter_out(activity.summary_polyline)
