@@ -142,19 +142,39 @@ class TrackLoader:
         TODO refactor with _load_tcx_tracks
         """
         tracks = {}
-        with concurrent.futures.ProcessPoolExecutor() as executor:
-            future_to_file_name = {
-                executor.submit(load_func, file_name, activity_title_dict): file_name
-                for file_name in file_names
-            }
-        for future in concurrent.futures.as_completed(future_to_file_name):
-            file_name = future_to_file_name[future]
-            try:
-                t = future.result()
-            except TrackLoadError as e:
-                log.error(f"Error while loading {file_name}: {e}")
-            else:
-                tracks[file_name] = t
+        failed_files = []
+        
+        # Try multiprocessing first
+        try:
+            with concurrent.futures.ProcessPoolExecutor() as executor:
+                future_to_file_name = {
+                    executor.submit(load_func, file_name, activity_title_dict): file_name
+                    for file_name in file_names
+                }
+            for future in concurrent.futures.as_completed(future_to_file_name):
+                file_name = future_to_file_name[future]
+                try:
+                    t = future.result()
+                    tracks[file_name] = t
+                except Exception as e:
+                    log.error(f"Error while loading {file_name} in multiprocessing: {e}")
+                    failed_files.append(file_name)
+        except Exception as e:
+            log.error(f"Multiprocessing failed: {e}, falling back to sequential processing")
+            failed_files = list(file_names)
+            
+        # Fallback to sequential processing for failed files
+        if failed_files:
+            log.info(f"Processing {len(failed_files)} files sequentially as fallback")
+            for file_name in failed_files:
+                try:
+                    t = load_func(file_name, activity_title_dict)
+                    tracks[file_name] = t
+                except TrackLoadError as e:
+                    log.error(f"Error while loading {file_name}: {e}")
+                except Exception as e:
+                    log.error(f"Unexpected error while loading {file_name}: {e}")
+        
         return tracks
 
     @staticmethod

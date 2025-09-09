@@ -26,7 +26,10 @@ DEFAULT_TIMEZONE = timezone(timedelta(hours=8), TIMEZONE_NAME)
 
 def get_all_activity_summaries(session, headers, start_time=None):
     if start_time is None:
-        start_time = datetime.fromisoformat("2015-01-01T00:00:00+08:00")
+        try:
+            start_time = datetime.fromisoformat("2015-01-01T00:00:00+08:00")
+        except:
+            start_time = None
     start_time_str = start_time.strftime("%Y-%m-%d %H:%M:%S")
     end_time_str = datetime.now(tz=DEFAULT_TIMEZONE).strftime("%Y-%m-%d %H:%M:%S")
     result = []
@@ -43,9 +46,12 @@ def get_all_activity_summaries(session, headers, start_time=None):
             for summary in summary_list:
                 if summary["activity_type"] != "run":
                     continue
-                start_date_local = datetime.fromisoformat(
-                    summary["start_date_local"] + TIMEZONE_OFFSET
-                )
+                try:
+                    start_date_local = datetime.fromisoformat(
+                        summary["start_date_local"] + TIMEZONE_OFFSET
+                    )
+                except:
+                    start_date_local = None
                 start_date = adjust_time_to_utc(start_date_local, TIMEZONE_NAME)
                 moving_time = timedelta(seconds=int(summary["moving_time"]))
                 distance = float(summary["activity_distance"]) * 1000
@@ -109,9 +115,12 @@ def merge_summary_and_detail_to_nametuple(summary, detail):
         start_latlng = start_point(float(first_point[0]), float(first_point[1]))
         if point_list_length > 1:
             last_point = point_list[-1]
-            elapsed_time = datetime.fromisoformat(
-                last_point[6]
-            ) - datetime.fromisoformat(first_point[6])
+            try:
+                elapsed_time = datetime.fromisoformat(
+                    last_point[6]
+                ) - datetime.fromisoformat(first_point[6])
+            except:
+                elapsed_time = None
             latlng_list = [[float(point[0]), float(point[1])] for point in point_list]
             map = run_map(polyline.encode(latlng_list))
 
@@ -222,7 +231,7 @@ def save_activity_gpx(summary, detail, track):
             longitude=float(point[1]),
             elevation=float(point[2]),
             time=adjust_time_to_utc(
-                datetime.fromisoformat(point[6] + TIMEZONE_OFFSET), TIMEZONE_NAME
+                datetime.fromisoformat(point[6] + TIMEZONE_OFFSET) if point[6] else None, TIMEZONE_NAME
             ),
         )
         if avg_hr > 0 or avg_cadence > 0:
@@ -252,9 +261,12 @@ def save_activity_gpx(summary, detail, track):
 # 郁金香运动的活动 ID 采用 UUID 模式，而 DB 主键使用 long 类型，无法有效存储，所以采用构造个人唯一的活动 ID
 # 模拟构造 ID = 特殊前缀 + 活动开始时间的 timestamp + 活动距离（单位：米）
 def build_tulipsport_int_activity_id(activity):
-    timestamp_str = str(
-        int(datetime.fromisoformat(activity["start_date_local"] + "+08:00").timestamp())
-    )
+    try:
+        timestamp_str = str(
+            int(datetime.fromisoformat(activity["start_date_local"] + "+08:00").timestamp())
+        )
+    except:
+        timestamp_str = "0"
     distance_str = f'{int(float(activity["activity_distance"]) * 1000):0>6}'
     return TULIPSPORT_FAKE_ID_PREFIX + timestamp_str + distance_str
 

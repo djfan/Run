@@ -220,9 +220,15 @@ class Track:
             start_time_str = self._load_gpx_extensions_item(gpx, "start_time")
             end_time_str = self._load_gpx_extensions_item(gpx, "end_time")
             if start_time_str:
-                self.start_time = datetime.datetime.fromisoformat(start_time_str)
+                try:
+                    self.start_time = datetime.datetime.fromisoformat(start_time_str) if start_time_str else None
+                except:
+                    self.start_time = None
             if end_time_str:
-                self.end_time = datetime.datetime.fromisoformat(end_time_str)
+                try:
+                    self.end_time = datetime.datetime.fromisoformat(end_time_str) if end_time_str else None
+                except:
+                    self.end_time = None
             if self.start_time and self.end_time:
                 self.start_time_local, self.end_time_local = parse_datetime_to_local(
                     self.start_time, self.end_time, None
