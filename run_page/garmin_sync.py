@@ -554,6 +554,7 @@ if __name__ == "__main__":
             activity_title_dict=id2title,
             start_date=start_date_obj,
             end_date=end_date_obj,
+            only_run=is_only_running,
         )
     make_activities_file(
         SQL_FILE,
@@ -563,4 +564,5 @@ if __name__ == "__main__":
         activity_title_dict=id2title,
         start_date=start_date_obj,
         end_date=end_date_obj,
+        only_run=is_only_running,
     )

@@ -53,8 +53,10 @@ def make_activities_file(
     activity_title_dict={},
     start_date=None,
     end_date=None,
+    only_run=False,
 ):
     generator = Generator(sql_file)
+    generator.only_run = only_run  # Set the only_run flag to filter activities
     generator.sync_from_data_dir(
         data_dir, file_suffix=file_suffix, activity_title_dict=activity_title_dict
     )
