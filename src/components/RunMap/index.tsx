@@ -132,6 +132,7 @@ const RunMap = ({
 
   // animation state (single run only)
   const [animatedPoints, setAnimatedPoints] = useState<Coordinate[]>([]);
+  const [markerPosition, setMarkerPosition] = useState<Coordinate | null>(null);
   const routeAnimatorRef = useRef<RouteAnimator | null>(null);
   const lastRouteKeyRef = useRef<string | null>(null);
 
@@ -319,12 +320,23 @@ const RunMap = ({
       routeAnimatorRef.current.stop();
     }
 
+    // Reset marker to start position
+    setMarkerPosition(points[0]);
+
     // Create new animator
     routeAnimatorRef.current = new RouteAnimator(
       points,
-      setAnimatedPoints,
+      (visiblePoints) => {
+        setAnimatedPoints(visiblePoints);
+        // Update marker position to the last visible point
+        if (visiblePoints.length > 0) {
+          setMarkerPosition(visiblePoints[visiblePoints.length - 1]);
+        }
+      },
       () => {
         routeAnimatorRef.current = null;
+        // Ensure marker is at the end position when animation completes
+        setMarkerPosition(points[points.length - 1]);
       }
     );
 
@@ -334,11 +346,16 @@ const RunMap = ({
 
   // autoplay once when single run changes
   useEffect(() => {
-    if (!isSingleRun) return;
+    if (!isSingleRun) {
+      setMarkerPosition(null);
+      return;
+    }
     const pts = geoData.features[0].geometry.coordinates as Coordinate[];
     const key = `${pts.length}-${pts[0]?.join(',')}-${pts[pts.length - 1]?.join(',')}`;
     if (key && key !== lastRouteKeyRef.current) {
       lastRouteKeyRef.current = key;
+      // Set initial marker position
+      setMarkerPosition(pts[0]);
       startRouteAnimation();
     }
     // cleanup on unmount
@@ -442,12 +459,10 @@ const RunMap = ({
           />
         </Source>
       )}
-      {isSingleRun && (
+      {isSingleRun && markerPosition && (
         <RunMarker
-          startLat={startLat}
-          startLon={startLon}
-          endLat={endLat}
-          endLon={endLon}
+          longitude={markerPosition[0]}
+          latitude={markerPosition[1]}
         />
       )}
       <span className={styles.runTitle}>{title}</span>

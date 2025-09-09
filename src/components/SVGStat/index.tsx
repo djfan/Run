@@ -22,16 +22,16 @@ const SVGStat = () => {
     <div id="svgStat" className="space-y-8">
       <Suspense fallback={<div className="text-center">Loading...</div>}>
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-6">Activity Calendar</h2>
+          <h2 className="mb-6 text-2xl font-semibold">Activity Calendar</h2>
           <div className="flex justify-center">
-            <GithubSvg className="github-svg max-w-4xl w-full h-auto" />
+            <GithubSvg className="github-svg h-auto w-full max-w-4xl" />
           </div>
         </div>
-        
+
         <div className="text-center">
-          <h2 className="text-2xl font-semibold mb-6">Activity Grid</h2>
+          <h2 className="mb-6 text-2xl font-semibold">Activity Grid</h2>
           <div className="flex justify-center">
-            <GridSvg className="grid-svg max-w-3xl w-full h-auto" />
+            <GridSvg className="grid-svg h-auto w-full max-w-3xl" />
           </div>
         </div>
       </Suspense>

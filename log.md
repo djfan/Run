@@ -20,6 +20,7 @@
 - Configured GitHub Pages deployment as recommended solution over Vercel
 
 ## SVG Generation Command Reference
+
 ```bash
 python run_page/gen_svg.py --from-db --title "Run 2025" --type grid --athlete "Dongjie"  --output assets/grid.svg --min-distance 5.0 --special-color yellow --special-color2 red --special-distance 7 --special-distance2 10 --use-localtime
 ```

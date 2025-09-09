@@ -147,9 +147,9 @@ export class RouteAnimator {
     config: RouteAnimationConfig = {}
   ) {
     this.config = {
-      speedMps: 4000,
-      minDuration: 2500,
-      maxDuration: 8000,
+      speedMps: 1000,
+      minDuration: 10000,
+      maxDuration: 30000,
       targetFps: 60,
       updateThreshold: 0.01,
       minDistance: 5,
