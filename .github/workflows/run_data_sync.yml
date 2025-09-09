@@ -50,7 +50,7 @@ env:
   BIRTHDAY_MONTH: 1992-08 # If you want to generate the month of life, set it to your birthday month, format is YYYY-MM
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
