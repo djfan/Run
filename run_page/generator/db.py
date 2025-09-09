@@ -53,8 +53,8 @@ class Activity(Base):
     run_id = Column(Integer, primary_key=True)
     name = Column(String)
     distance = Column(Float)
-    moving_time = Column(Interval)
-    elapsed_time = Column(Interval)
+    moving_time = Column(Integer)
+    elapsed_time = Column(Integer)
     type = Column(String)
     subtype = Column(String)
     start_date = Column(String)
@@ -72,6 +72,9 @@ class Activity(Base):
             attr = getattr(self, key)
             if isinstance(attr, (datetime.timedelta, datetime.datetime)):
                 out[key] = str(attr)
+            elif key in ['moving_time', 'elapsed_time'] and isinstance(attr, (int, float)):
+                # Convert seconds to timedelta string for display
+                out[key] = str(datetime.timedelta(seconds=int(attr)))
             else:
                 out[key] = attr
 
@@ -129,8 +132,8 @@ def update_or_create_activity(session, run_activity):
                 run_id=run_activity.id,
                 name=run_activity.name,
                 distance=run_activity.distance,
-                moving_time=run_activity.moving_time,
-                elapsed_time=run_activity.elapsed_time,
+                moving_time=run_activity.moving_time.total_seconds() if hasattr(run_activity.moving_time, 'total_seconds') else run_activity.moving_time,
+                elapsed_time=run_activity.elapsed_time.total_seconds() if hasattr(run_activity.elapsed_time, 'total_seconds') else run_activity.elapsed_time,
                 type=run_activity.type,
                 subtype=run_activity.subtype,
                 start_date=run_activity.start_date,
@@ -148,8 +151,8 @@ def update_or_create_activity(session, run_activity):
         else:
             activity.name = run_activity.name
             activity.distance = float(run_activity.distance)
-            activity.moving_time = run_activity.moving_time
-            activity.elapsed_time = run_activity.elapsed_time
+            activity.moving_time = run_activity.moving_time.total_seconds() if hasattr(run_activity.moving_time, 'total_seconds') else run_activity.moving_time
+            activity.elapsed_time = run_activity.elapsed_time.total_seconds() if hasattr(run_activity.elapsed_time, 'total_seconds') else run_activity.elapsed_time
             activity.type = run_activity.type
             activity.subtype = run_activity.subtype
             activity.average_heartrate = run_activity.average_heartrate
