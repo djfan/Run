@@ -27,7 +27,8 @@ def randomword():
 
 options.default_user_agent = "running_page"
 # reverse the location (lat, lon) -> location detail
-g = Nominatim(user_agent=randomword())
+# Set short timeout to avoid hanging on slow geocoding requests
+g = Nominatim(user_agent=randomword(), timeout=3)
 
 
 ACTIVITY_KEYS = [
@@ -116,17 +117,10 @@ def update_or_create_activity(session, run_activity):
                             f"{start_point.lat}, {start_point.lon}", language="zh-CN"  # type: ignore
                         )
                     )
-                # limit (only for the first time)
-                except Exception:
-                    try:
-                        location_country = str(
-                            g.reverse(
-                                f"{start_point.lat}, {start_point.lon}",
-                                language="zh-CN",  # type: ignore
-                            )
-                        )
-                    except Exception:
-                        pass
+                # Skip geocoding on timeout/connection errors - not critical for core functionality
+                except Exception as e:
+                    print(f"Geocoding timeout/error for activity {run_activity.id}, skipping location lookup: {e}")
+                    location_country = ""
 
             activity = Activity(
                 run_id=run_activity.id,
