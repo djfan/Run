@@ -129,9 +129,27 @@ class Generator:
         self.session.commit()
 
     def load(self, start_date=None, end_date=None):
-        # Fix legacy "Unknown" type for running activities
+        # Fix legacy "Unknown" type and incorrect Shanghai timezone for treadmill activities
+        # Shanghai (UTC+8) vs New York (UTC-5/EST) is a 13-hour difference in winter
         self.session.execute(
-            text("UPDATE activities SET type = 'Run' WHERE type = 'Unknown' AND (name LIKE '%Running%' OR name LIKE '%Run%')")
+            text("""
+                UPDATE activities 
+                SET type = 'Run',
+                    start_date_local = datetime(start_date_local, '-13 hours')
+                WHERE type = 'Unknown' 
+                AND (name LIKE '%Treadmill%' OR name LIKE '%Run%')
+                AND start_date_local > '2026-01-01'
+            """)
+        )
+        # Also catch cases where type was already updated to Run but timezone is still Shanghai
+        self.session.execute(
+            text("""
+                UPDATE activities 
+                SET start_date_local = datetime(start_date_local, '-13 hours')
+                WHERE type = 'Run' 
+                AND name LIKE '%Treadmill%'
+                AND start_date_local LIKE '2026-01-11%'
+            """)
         )
         self.session.commit()
 
