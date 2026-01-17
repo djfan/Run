@@ -105,7 +105,7 @@ class Garmin:
         """
         url = f"{self.modern_url}/activitylist-service/activities/search/activities?start={start}&limit={limit}"
         if self.is_only_running:
-            url = url + "&activityType=running"
+            url = url + "&activityType=running&activityType=treadmill_running"
         return await self.fetch_data(url)
 
     async def get_activity_summary(self, activity_id):
