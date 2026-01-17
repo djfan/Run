@@ -144,7 +144,7 @@ def get_normalized_sport_type(sport_type):
     Map GPX sport types to standardized categories for consistent filtering
     """
     # Running activities
-    if sport_type in ["running", "Run"]:
+    if sport_type in ["running", "Run", "treadmill_running", "VirtualRun", "Virtual Run", "indoor_running"]:
         return "Run"
 
     # Cycling activities

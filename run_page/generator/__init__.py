@@ -5,7 +5,7 @@ import sys
 import arrow
 import stravalib
 from gpxtrackposter import track_loader
-from sqlalchemy import func
+from sqlalchemy import func, text
 
 from polyline_processor import filter_out
 
@@ -65,7 +65,7 @@ class Generator:
                 filters = {"before": datetime.datetime.now(datetime.timezone.utc)}
 
         for activity in self.client.get_activities(**filters):
-            if self.only_run and activity.type != "Run":
+            if self.only_run and activity.type not in ["Run", "VirtualRun", "treadmill_running"]:
                 continue
             if IGNORE_BEFORE_SAVING:
                 if activity.map and activity.map.summary_polyline:
@@ -129,10 +129,16 @@ class Generator:
         self.session.commit()
 
     def load(self, start_date=None, end_date=None):
+        # Fix legacy "Unknown" type for running activities
+        self.session.execute(
+            text("UPDATE activities SET type = 'Run' WHERE type = 'Unknown' AND (name LIKE '%Running%' OR name LIKE '%Run%')")
+        )
+        self.session.commit()
+
         # if sub_type is not in the db, just add an empty string to it
         query = self.session.query(Activity).filter(Activity.distance > 0.1)
         if self.only_run:
-            query = query.filter(Activity.type == "Run")
+            query = query.filter(Activity.type.in_(["Run", "VirtualRun", "treadmill_running"]))
 
         # Add date filtering if provided
         if start_date:

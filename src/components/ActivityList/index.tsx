@@ -295,7 +295,7 @@ const ActivityList: React.FC = () => {
           return true;
         }
         if (sportType === 'running') {
-          return activity.type === 'running' || activity.type === 'Run';
+          return activity.type === 'running' || activity.type === 'Run' || activity.type === 'VirtualRun' || activity.type === 'treadmill_running';
         }
         if (sportType === 'walking') {
           return activity.type === 'walking' || activity.type === 'Walk';
